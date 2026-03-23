@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='16' fill='%23162240'/><path d='M6 24 L10 18 L14 20 L18 10 L22 14 L26 6' stroke='%23E8C230' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/><circle cx='10' cy='18' r='2' fill='%233B6FD4'/><circle cx='18' cy='10' r='2' fill='%233B6FD4'/><circle cx='26' cy='6' r='2' fill='%233B6FD4'/></svg>">
+<meta property="og:image" content="https://capsule-render.vercel.app/api?type=rect&color=162240&height=200&text=Calgary%20Data%20Portfolio&fontSize=30&fontColor=E8C230&desc=Ola%20K.&descColor=3B6FD4">
+<title>MLOps model deployment pipeline — Calgary data portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #162240;
+  --bg-elevated: #1D2D52;
+  --bg-card: #243868;
+  --border: #385588;
+  --border-hover: #4A6CAA;
+  --text: #EDE9E2;
+  --text-muted: #A0A8BC;
+  --text-dim: #6A7590;
+  --navy: #3B6FD4;
+  --navy-bright: #5588EE;
+  --gold: #E8C230;
+  --gold-dim: rgba(232,194,48,0.18);
+}
+
+[data-theme="light"] {
+  --bg: #F4F1EC;
+  --bg-elevated: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --border: #D4CFC6;
+  --border-hover: #B0A998;
+  --text: #1A1A1A;
+  --text-muted: #5A5A5A;
+  --text-dim: #8A8A8A;
+  --navy: #3B6FD4;
+  --navy-bright: #2A5BC0;
+  --gold: #C4A020;
+  --gold-dim: rgba(196,160,32,0.14);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'IBM Plex Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container { max-width: 960px; margin: 0 auto; padding: 0 1.5rem; position: relative; z-index: 1; }
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+nav a {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: color 0.2s;
+}
+nav a:hover { color: var(--gold); }
+.nav-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-muted);
+  padding: 0.35rem 0.65rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s;
+}
+.theme-toggle:hover { border-color: var(--border-hover); color: var(--text); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up {
+  opacity: 0;
+  animation: fadeUp 0.6s ease forwards;
+}
+.fade-up:nth-child(2) { animation-delay: 0.08s; }
+.fade-up:nth-child(3) { animation-delay: 0.16s; }
+.fade-up:nth-child(4) { animation-delay: 0.24s; }
+
+.hero { padding: 4rem 0 3rem; position: relative; }
+.hero-number {
+  font-family: 'Instrument Serif', serif;
+  font-size: 7rem;
+  color: var(--text-dim);
+  opacity: 0.18;
+  line-height: 1;
+  position: absolute;
+  top: 1.5rem;
+  right: 0;
+}
+.hero h1 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.8rem;
+  font-weight: 400;
+  line-height: 1.15;
+  margin-bottom: 0.75rem;
+  max-width: 600px;
+}
+.hero-desc {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  max-width: 540px;
+  margin-bottom: 1.5rem;
+}
+.tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 2rem; }
+.tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0.7rem;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.tag--gold { border-color: var(--gold); color: var(--gold); background: var(--gold-dim); }
+.tag--navy { border-color: var(--navy); color: var(--navy-bright); }
+.hero-metric {
+  display: inline-block;
+  padding: 1.25rem 2rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-elevated);
+}
+.hero-metric-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2.6rem;
+  color: var(--gold);
+  line-height: 1;
+}
+.hero-metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 0.3rem;
+  letter-spacing: 0.03em;
+}
+
+section { padding: 3rem 0; border-top: 1px solid var(--border); }
+section h2 {
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.7rem;
+  font-weight: 400;
+  margin-bottom: 0.4rem;
+}
+section .section-sub {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.app-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem; }
+.app-card {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: var(--bg-elevated);
+  padding: 1.25rem;
+  transition: border-color 0.2s;
+}
+.app-card:hover { border-color: var(--border-hover); }
+.app-card-name {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--gold);
+  letter-spacing: 0.03em;
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+}
+.app-card ul { list-style: none; margin-bottom: 1rem; }
+.app-card li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  padding: 0.15rem 0;
+}
+.app-card li::before {
+  content: '\2014\00a0';
+  color: var(--text-dim);
+}
+
+.mock-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 56px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.mock-bar {
+  flex: 1;
+  border-radius: 1px 1px 0 0;
+  min-width: 6px;
+}
+.mock-bar--navy { background: var(--navy); }
+.mock-bar--gold { background: var(--gold); }
+.mock-bar--dim { background: var(--text-dim); opacity: 0.5; }
+
+.mock-pipeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.mock-step {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  margin: 0 2px;
+}
+
+.mock-drift {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 56px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+.mock-drift-bar {
+  flex: 1;
+  border-radius: 1px 1px 0 0;
+  min-width: 4px;
+}
+
+.btn-row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+.btn {
+  display: inline-block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+  padding: 0.65rem 1.5rem;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.btn--gold {
+  background: var(--gold);
+  color: #162240;
+  border-color: var(--gold);
+}
+.btn--gold:hover { background: #D4B02A; }
+.btn--outline {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+}
+.btn--outline:hover { border-color: var(--border-hover); color: var(--text); }
+.code-block {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1rem 1.25rem;
+  margin-top: 1.5rem;
+  color: var(--text-muted);
+  overflow-x: auto;
+  white-space: pre;
+  line-height: 1.7;
+}
+.code-block .prompt { color: var(--gold); }
+
+.metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+.metric-card {
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1.25rem;
+  background: var(--bg-elevated);
+  text-align: center;
+  transition: border-color 0.2s;
+}
+.metric-card:hover { border-color: var(--border-hover); }
+.metric-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 2rem;
+  color: var(--gold);
+  line-height: 1.1;
+}
+.metric-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  margin-top: 0.35rem;
+  letter-spacing: 0.03em;
+}
+
+.method-text {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  max-width: 640px;
+  margin-bottom: 2rem;
+  line-height: 1.7;
+}
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  position: relative;
+}
+.pipeline::before {
+  content: '';
+  position: absolute;
+  top: 1.4rem;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: var(--border);
+}
+.pipeline-step { text-align: center; position: relative; }
+.pipeline-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--navy);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  margin: 0 auto 0.6rem;
+  position: relative;
+  z-index: 1;
+}
+.pipeline-step:last-child .pipeline-dot { background: var(--gold); }
+.pipeline-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+.pipeline-detail {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+
+.links-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.link-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1rem 1.25rem;
+  text-decoration: none;
+  color: var(--text);
+  background: var(--bg-elevated);
+  transition: border-color 0.2s;
+}
+.link-card:hover { border-color: var(--border-hover); }
+.link-icon {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--navy-bright);
+  flex-shrink: 0;
+  width: 2rem;
+  text-align: center;
+}
+.link-text-title {
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+.link-text-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+footer {
+  border-top: 1px solid var(--border);
+  padding: 2rem 0;
+  margin-top: 1rem;
+  text-align: center;
+}
+footer p {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+footer a { color: var(--text-muted); text-decoration: none; }
+footer a:hover { color: var(--gold); }
+
+@media (max-width: 768px) {
+  .hero h1 { font-size: 2rem; }
+  .hero-number { font-size: 4.5rem; }
+  .app-grid { grid-template-columns: 1fr; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .pipeline { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .pipeline::before { display: none; }
+  .links-grid { grid-template-columns: 1fr; }
+  nav { flex-wrap: wrap; }
+}
+@media (max-width: 480px) {
+  .hero h1 { font-size: 1.7rem; }
+  .hero-number { font-size: 3.5rem; top: 1rem; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .pipeline { grid-template-columns: 1fr; }
+}
+
+@media print {
+  body { background: #fff; color: #111; }
+  body::before { display: none; }
+  nav, .theme-toggle, .btn-row, .code-block { display: none; }
+  .hero-number { opacity: 0.08; }
+  section { border-top-color: #ccc; }
+  .app-card, .metric-card, .link-card {
+    border-color: #ccc;
+    background: #fafafa;
+  }
+  .hero-metric-value, .metric-value { color: #333; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<nav class="fade-up">
+  <a href="https://guydev42.github.io/calgary-data-portfolio/">Back to portfolio</a>
+  <span class="nav-title">MLOps pipeline</span>
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">Light</button>
+</nav>
+
+<header class="hero fade-up">
+  <span class="hero-number">19</span>
+  <h1>MLOps model deployment pipeline</h1>
+  <p class="hero-desc">Automated retraining pipeline with PSI-based drift detection, model versioning, and champion/challenger promotion for a churn prediction model.</p>
+  <div class="tags">
+    <span class="tag tag--gold">Drift detection</span>
+    <span class="tag tag--gold">Model versioning</span>
+    <span class="tag tag--navy">CI/CD</span>
+    <span class="tag tag--navy">Champion/challenger</span>
+    <span class="tag">Docker</span>
+    <span class="tag">GitHub Actions</span>
+  </div>
+  <div class="hero-metric">
+    <div class="hero-metric-value">6 steps</div>
+    <div class="hero-metric-label">Automated pipeline stages</div>
+  </div>
+</header>
+
+<!-- Overview -->
+<section class="fade-up">
+  <h2>Overview</h2>
+  <p class="section-sub">End-to-end ML pipeline with data validation, training, evaluation, and conditional promotion</p>
+  <p class="method-text">
+    Production ML models degrade over time as incoming data distributions shift. This pipeline wraps a churn prediction model in six automated stages: data validation, feature engineering, model training, holdout evaluation, champion/challenger comparison, and conditional promotion. PSI monitors every numeric feature for drift, and the pipeline runs automatically via GitHub Actions on every push to main.
+  </p>
+
+  <div class="pipeline" style="grid-template-columns: repeat(6, 1fr);">
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Validate</div>
+      <div class="pipeline-detail">Schema, nulls</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Features</div>
+      <div class="pipeline-detail">Engineer, scale</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Train</div>
+      <div class="pipeline-detail">GBM, 5-fold CV</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Evaluate</div>
+      <div class="pipeline-detail">Holdout metrics</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Compare</div>
+      <div class="pipeline-detail">A vs B</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Promote</div>
+      <div class="pipeline-detail">If better</div>
+    </div>
+  </div>
+</section>
+
+<!-- Dashboard preview -->
+<section class="fade-up">
+  <h2>Interactive dashboard</h2>
+  <p class="section-sub">Five-page Streamlit application for pipeline monitoring and control</p>
+  <div class="app-grid">
+
+    <div class="app-card">
+      <div class="app-card-name">Pipeline status</div>
+      <ul>
+        <li>Step-by-step run breakdown with durations</li>
+        <li>Holdout metrics at a glance</li>
+        <li>Data validation results</li>
+      </ul>
+      <div class="mock-pipeline">
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--gold);"></div>
+        <div class="mock-step" style="background:var(--gold);"></div>
+        <div class="mock-step" style="background:var(--text-dim);opacity:0.3;"></div>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <div class="app-card-name">Model registry</div>
+      <ul>
+        <li>All versions with timestamps and metrics</li>
+        <li>Production flag indicator</li>
+        <li>Metrics trend over time</li>
+      </ul>
+      <div class="mock-bars">
+        <div class="mock-bar mock-bar--navy" style="height:72%"></div>
+        <div class="mock-bar mock-bar--navy" style="height:76%"></div>
+        <div class="mock-bar mock-bar--navy" style="height:74%"></div>
+        <div class="mock-bar mock-bar--gold" style="height:82%"></div>
+        <div class="mock-bar mock-bar--gold" style="height:85%"></div>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <div class="app-card-name">Drift monitor</div>
+      <ul>
+        <li>PSI per feature with threshold lines</li>
+        <li>Distribution overlays (train vs incoming)</li>
+        <li>Retrain trigger indicators</li>
+      </ul>
+      <div class="mock-drift">
+        <div class="mock-drift-bar" style="height:20%;background:var(--navy);"></div>
+        <div class="mock-drift-bar" style="height:35%;background:var(--navy);"></div>
+        <div class="mock-drift-bar" style="height:65%;background:var(--gold);"></div>
+        <div class="mock-drift-bar" style="height:80%;background:#ef4444;"></div>
+        <div class="mock-drift-bar" style="height:15%;background:var(--navy);"></div>
+        <div class="mock-drift-bar" style="height:45%;background:var(--gold);"></div>
+        <div class="mock-drift-bar" style="height:25%;background:var(--navy);"></div>
+      </div>
+    </div>
+
+    <div class="app-card">
+      <div class="app-card-name">Model comparison</div>
+      <ul>
+        <li>Champion vs challenger radar chart</li>
+        <li>Side-by-side metric tables</li>
+        <li>Promotion recommendation</li>
+      </ul>
+      <div class="mock-bars">
+        <div class="mock-bar mock-bar--navy" style="height:75%"></div>
+        <div class="mock-bar mock-bar--gold" style="height:80%"></div>
+        <div class="mock-bar" style="height:1px;background:var(--text-dim);opacity:0.3"></div>
+        <div class="mock-bar mock-bar--navy" style="height:68%"></div>
+        <div class="mock-bar mock-bar--gold" style="height:72%"></div>
+        <div class="mock-bar" style="height:1px;background:var(--text-dim);opacity:0.3"></div>
+        <div class="mock-bar mock-bar--navy" style="height:82%"></div>
+        <div class="mock-bar mock-bar--gold" style="height:85%"></div>
+      </div>
+    </div>
+
+    <div class="app-card" style="grid-column: 1 / -1;">
+      <div class="app-card-name">Retrain</div>
+      <ul>
+        <li>One-click data regeneration and pipeline trigger</li>
+        <li>Full run history with AUC, F1, and drift flags</li>
+        <li>Automated promotion decisions logged for audit</li>
+      </ul>
+      <div class="mock-pipeline">
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--navy);"></div>
+        <div class="mock-step" style="background:var(--gold);"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="btn-row">
+    <a href="#" class="btn btn--gold">Launch live app</a>
+    <a href="https://github.com/guydev42/calgary-data-portfolio/tree/main/project_19_mlops_pipeline" class="btn btn--outline" target="_blank" rel="noopener">View source</a>
+  </div>
+
+  <div class="code-block"><span class="prompt">$</span> pip install -r requirements.txt
+<span class="prompt">$</span> python data/generate_data.py
+<span class="prompt">$</span> python -m src.pipeline
+<span class="prompt">$</span> streamlit run app.py</div>
+</section>
+
+<!-- Pipeline architecture -->
+<section class="fade-up">
+  <h2>Pipeline architecture</h2>
+  <p class="section-sub">Six-stage pipeline with conditional promotion and drift monitoring</p>
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <div class="metric-value">6</div>
+      <div class="metric-label">Pipeline stages</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">PSI</div>
+      <div class="metric-label">Drift detection method</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">0.85+</div>
+      <div class="metric-label">ROC AUC on holdout</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-value">CI/CD</div>
+      <div class="metric-label">GitHub Actions</div>
+    </div>
+  </div>
+</section>
+
+<!-- Monitoring -->
+<section class="fade-up">
+  <h2>Monitoring</h2>
+  <p class="method-text">
+    The pipeline monitors data quality and model performance continuously. PSI (Population Stability Index) is computed for every numeric feature by comparing the incoming data distribution against the training baseline. Features with PSI above 0.25 trigger a retraining recommendation. The champion/challenger pattern ensures new models are only promoted when they beat the current production model by a configurable margin on ROC AUC. Every run is logged with full metrics for audit.
+  </p>
+  <div class="pipeline">
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Ingest data</div>
+      <div class="pipeline-detail">Validate schema and nulls</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Compute PSI</div>
+      <div class="pipeline-detail">Per-feature drift scores</div>
+    </div>
+    <div class="pipeline-step">
+      <div class="pipeline-dot"></div>
+      <div class="pipeline-label">Decision</div>
+      <div class="pipeline-detail">Retrain or keep</div>
+    </div>
+  </div>
+</section>
+
+<!-- How to run -->
+<section class="fade-up">
+  <h2>How to run</h2>
+  <p class="section-sub">Local, Docker, or CI/CD — pick your deployment path</p>
+  <div class="app-grid">
+    <div class="app-card">
+      <div class="app-card-name">Local</div>
+      <ul>
+        <li>pip install -r requirements.txt</li>
+        <li>python data/generate_data.py</li>
+        <li>python -m src.pipeline</li>
+        <li>streamlit run app.py</li>
+      </ul>
+    </div>
+    <div class="app-card">
+      <div class="app-card-name">Docker</div>
+      <ul>
+        <li>docker build -t mlops-pipeline .</li>
+        <li>docker run -p 8501:8501 mlops-pipeline</li>
+        <li>Visit http://localhost:8501</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Links -->
+<section class="fade-up">
+  <h2>Links</h2>
+  <div class="links-grid">
+    <a href="https://github.com/guydev42/calgary-data-portfolio/tree/main/project_19_mlops_pipeline" class="link-card" target="_blank" rel="noopener">
+      <span class="link-icon">{}</span>
+      <div>
+        <div class="link-text-title">View code on GitHub</div>
+        <div class="link-text-sub">Source, notebooks, and pipeline configuration</div>
+      </div>
+    </a>
+    <a href="notebooks/01_eda.ipynb" class="link-card">
+      <span class="link-icon">nb</span>
+      <div>
+        <div class="link-text-title">EDA notebook</div>
+        <div class="link-text-sub">Data validation and distributions</div>
+      </div>
+    </a>
+    <a href="https://guydev42.github.io/calgary-data-portfolio/" class="link-card">
+      <span class="link-icon">&larr;</span>
+      <div>
+        <div class="link-text-title">Back to portfolio</div>
+        <div class="link-text-sub">All projects</div>
+      </div>
+    </a>
+    <a href="notebooks/04_evaluation.ipynb" class="link-card">
+      <span class="link-icon">nb</span>
+      <div>
+        <div class="link-text-title">Evaluation notebook</div>
+        <div class="link-text-sub">Monitoring and retraining triggers</div>
+      </div>
+    </a>
+  </div>
+</section>
+
+</div>
+
+<footer>
+  <div class="container">
+    <p>Part of the <a href="https://guydev42.github.io/calgary-data-portfolio/" style="color:var(--gold,#E8C230);text-decoration:none;border-bottom:1px solid">Calgary data portfolio</a>. Data: Synthetic telecom churn data.</p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  const toggle = document.getElementById('themeToggle');
+  const html = document.documentElement;
+  const stored = localStorage.getItem('theme');
+  if (stored === 'light') {
+    html.setAttribute('data-theme', 'light');
+    toggle.textContent = 'Dark';
+  }
+  toggle.addEventListener('click', function() {
+    const isLight = html.getAttribute('data-theme') === 'light';
+    if (isLight) {
+      html.removeAttribute('data-theme');
+      toggle.textContent = 'Light';
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.setAttribute('data-theme', 'light');
+      toggle.textContent = 'Dark';
+      localStorage.setItem('theme', 'light');
+    }
+  });
+})();
+</script>
+</body>
+</html>
